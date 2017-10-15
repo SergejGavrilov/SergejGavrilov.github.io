@@ -9,22 +9,10 @@ var buttonInsertNode = document.getElementById("insertNode");
 const arrayInput = document.getElementById("arrayInput");
 var nodeInput = document.getElementById("nodeInput");
 
-const defaultX = 500;
-const defaultY = 20;
+
 const defaultRadius = 20;
-const shiftX = 400;
-const shiftY = 100;
 const startAngle = 0;
 const endEngle = Math.PI * 2;
-
-var ARRAY_SIZE = 32;
-
-var heap = new BinaryHeap(function (x) {
-    return x.getValue();
-});
-
-var Tri;
-var heapDrawn = [];
 
 var HeapXPositions = [450, 250, 650, 150, 350, 550, 750, 100, 200, 300, 400, 500, 600,
     700, 800, 075, 125, 175, 225, 275, 325, 375, 425, 475, 525, 575,
@@ -35,83 +23,8 @@ var HeapYPositions = [100, 170, 170, 240, 240, 240, 240, 310, 310, 310, 310, 310
     380, 380, 380, 380, 380];
 
 
-//Node of BinaryHeap
-//x, y - coordinates of center
-function Node(value) {
-    //   this.x = x;
-    //   this.y = y;
-    this.value = value;
-}
 
-Node.prototype.draw = function (pos) {
-    ctx.beginPath();
-    ctx.arc(HeapXPositions[pos], HeapYPositions[pos], defaultRadius, startAngle, endEngle, false);
-    ctx.stroke();
-    ctx.strokeText(this.value.toString(), HeapXPositions[pos], HeapYPositions[pos]);
-};
-
-Node.prototype.getX = function () {
-    return this.x;
-};
-
-Node.prototype.getY = function () {
-    return this.y;
-};
-
-Node.prototype.getValue = function () {
-    return this.value;
-};
-
-buttonClearCanvas.onclick = function () {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-};
-
-
-buttonInsertNode.onclick = function () {
-    var element = parseInt(nodeInput.value);
-    heap.push(new Node(element));
-    drawBinaryHeap(heap);
-}
-
-//Create binaryHeap from user input
-buttonCreateHeap.onclick = function () {
-    var arr = arrayInput.value.split(" ").map(function (x) {
-        return parseInt(x)
-    });
-    /*   var array = arr.split(" ").map(function(x){return parseInt(x)});
-       var x =array.reduce(function(sum, cur) {
-           return sum + cur;
-       }, 0);
-       document.getElementById("demo").innerHTML = x;
-       */
-
-    /*  heap = new BinaryHeap(function (x) {
-          return x.getValue();
-      });
-  */
-    for (var i = 0; i < arr.length; i++) {
-        heap.push(new Node(arr[i]));
-    }
-    /*   heapDrawn = [];
-     //  heapDrawn.push(new Node(defaultX, defaultY, heap.content[0]));
-       heapDrawn.push(new Node(heap.content[0]));
-       for (var i = 1; i < heap.size(); i++) {
-           var prevNode = heapDrawn[Math.floor((i - 1)/2)];
-        //   var level = Math.floor((Math.log2(i + 1)) + 1) + 4;
-           heapDrawn.push(new Node(heap.content[i]))
-       }
-   */
-    drawBinaryHeap(heap);
-
-};
-
-function drawBinaryHeap(heap) {
-    //   heap.forEach(function (t, i) { t.draw(i) })
-    for (var i = 0; i < heap.content.length; i++) {
-        heap.content[i].draw(i);
-    }
-}
-
+var ARRAY_SIZE = 32;
 
 function BinaryHeap(scoreFunction) {
     this.content = [];
@@ -122,6 +35,8 @@ BinaryHeap.prototype = {
     push: function (element) {
         // Add the new element to the end of the array.
         this.content.push(element);
+        //Нарисуем непросеенную кучу
+        drawBinaryHeap();
         // Allow it to bubble up.
         this.bubbleUp(this.content.length - 1);
     },
@@ -180,6 +95,7 @@ BinaryHeap.prototype = {
 
             // Otherwise, swap the parent with the current element and
             // continue.
+            drawBubbleUp(n);
             this.content[parentN] = element;
             this.content[n] = parent;
             n = parentN;
@@ -225,3 +141,99 @@ BinaryHeap.prototype = {
         }
     }
 };
+
+
+var heap = new BinaryHeap(function (x) {
+    return x.getValue();
+});
+
+var Tri;
+var heapDrawn = [];
+
+
+function Node(value) {
+    this.value = value;
+}
+
+Node.prototype.draw = function (pos) {
+    ctx.beginPath();
+    ctx.arc(HeapXPositions[pos], HeapYPositions[pos], defaultRadius, startAngle, endEngle, false);
+
+    ctx.stroke();
+    ctx.strokeText(this.value.toString(), HeapXPositions[pos], HeapYPositions[pos]);
+};
+
+Node.prototype.getX = function () {
+    return this.x;
+};
+
+Node.prototype.getY = function () {
+    return this.y;
+};
+
+Node.prototype.getValue = function () {
+    return this.value;
+};
+
+
+//CLEAR
+buttonClearCanvas.onclick = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    heap.content = [];
+};
+
+//INSERT
+buttonInsertNode.onclick = function () {
+
+    var element = parseInt(nodeInput.value);
+    heap.push(new Node(element));
+    drawBinaryHeap(heap);
+};
+
+
+//CREATE
+buttonCreateHeap.onclick = function () {
+    var arr = arrayInput.value.split(" ").map(function (x) {
+        return parseInt(x)
+    });
+
+    for (var i = 0; i < arr.length; i++) {
+        heap.push(new Node(arr[i]));
+    }
+
+    drawBinaryHeap(4);
+
+};
+
+
+function drawBubbleUp(n) {
+    var parentN = Math.floor((n + 1) / 2) - 1,
+        parent = this.content[parentN];
+    
+}
+
+//DRAW
+//передаем аргумент - рисуем кучу без 2-х элементов. Ничего не передаем - рисуем целиком
+function drawBinaryHeap() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (var i = 0; i < heap.content.length; i++) {
+        var parentN = Math.floor(i / 2 - 0.5);
+        if (i > 0) {
+            ctx.beginPath();
+            ctx.moveTo(HeapXPositions[i], HeapYPositions[i]);
+            ctx.lineTo(HeapXPositions[parentN],
+                        HeapYPositions[parentN]);
+            ctx.stroke();
+            ctx.closePath();
+        }
+        //НА случай, если нам потребуется отрисовать кучу бех элемента и без предка
+        //этого элемента
+        if (arguments.length === 1 &&
+            (arguments[0] === i || (arguments[0] === 2 * i + 1 || arguments[0] === 2 * i + 2)))
+            continue;
+        heap.content[i].draw(i);
+    }
+}
+
+
