@@ -147,20 +147,17 @@ var heap = new BinaryHeap(function (x) {
     return x.getValue();
 });
 
-var Tri;
-var heapDrawn = [];
-
 
 function Node(value) {
     this.value = value;
 }
 
-Node.prototype.draw = function (pos) {
+Node.prototype.draw = function (x, y) {
     ctx.beginPath();
-    ctx.arc(HeapXPositions[pos], HeapYPositions[pos], defaultRadius, startAngle, endEngle, false);
+    ctx.arc(x, y, defaultRadius, startAngle, endEngle, false);
 
     ctx.stroke();
-    ctx.strokeText(this.value.toString(), HeapXPositions[pos], HeapYPositions[pos]);
+    ctx.strokeText(this.value.toString(), x, y);
 };
 
 Node.prototype.getX = function () {
@@ -201,15 +198,44 @@ buttonCreateHeap.onclick = function () {
         heap.push(new Node(arr[i]));
     }
 
-    drawBinaryHeap(4);
+    drawBinaryHeap();
 
 };
 
-
+//ANIMATION
 function drawBubbleUp(n) {
     var parentN = Math.floor((n + 1) / 2) - 1,
-        parent = this.content[parentN];
-    
+        parent = heap.content[parentN];
+    var parentX = HeapXPositions[parentN];
+    var parentY = HeapYPositions[parentN];
+    var childX = HeapXPositions[n];
+    var childY = HeapYPositions[n];
+
+    var dx = 5;
+    var dy = 5;
+    var currChildX = childX;
+    var currChildY = childY;
+    var currParentX = parentX;
+    var currParentY = parentY;
+
+
+
+    var fps = 5;
+    setInterval(function () {
+        currParentX += dx;
+        currParentY += dy;
+        parent.draw(currParentX, currParentY);
+        drawBinaryHeap(n);
+    }, 1000/fps);
+    //requestAnimationFrame(drawBubbleUp);
+
+ /*   if (currParentX != childX)
+        currParentX += dx;
+    if (currParentY != childY)
+        currParentY += dy;
+    parent.draw(currParentX, currParentY);
+    drawBinaryHeap(n);
+*/
 }
 
 //DRAW
@@ -232,8 +258,17 @@ function drawBinaryHeap() {
         if (arguments.length === 1 &&
             (arguments[0] === i || (arguments[0] === 2 * i + 1 || arguments[0] === 2 * i + 2)))
             continue;
-        heap.content[i].draw(i);
+        heap.content[i].draw(HeapXPositions[i], HeapYPositions[i]);
     }
 }
+var x = 200;
+function animate(n) {
+    requestAnimationFrame(animate);
+    ctx.beginPath();
+    ctx.arc(x, 200,30 ,0 , Math.PI * 2, false);
+    ctx.strokeStyle = 'blue';
+    ctx.stroke();
+    x += 1;
+}
 
-
+//animate(3);
