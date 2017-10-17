@@ -190,6 +190,8 @@ Node.prototype.getValue = function () {
 buttonClearCanvas.onclick = function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     heap.content = [];
+    queue_animate = [];
+    heapAnimated = []
 };
 
 //INSERT
@@ -221,22 +223,29 @@ buttonCreateHeap.onclick = function () {
 };
 
 
-
+var speed = 1;
 
 //ANIMATION
 function drawBubbleUp() {
-    var parentN = queue_animate[0],
+    var step = 0,
+        parentN = queue_animate[step],
         parent = heapAnimated[parentN];
-
-    var childN = heapAnimated.length - 1,
+    var speed = 0.5;
+    var childN = heapAnimated.length - 1 - step,
         child = heapAnimated[childN];
     var parentX = HeapXPositions[parentN];
     var parentY = HeapYPositions[parentN];
     var childX = HeapXPositions[childN];
     var childY = HeapYPositions[childN];
 
-    var dx = 1;
-    var dy = 1;
+    var dx = speed;
+    if (childX < parentX)
+        dx = -speed;
+    else
+        dx = speed;
+
+    var dy = speed;
+    
     var currChildX = childX;
     var currChildY = childY;
     var currParentX = parentX;
@@ -244,14 +253,59 @@ function drawBubbleUp() {
 
     function animate() {
         requestAnimationFrame(animate);
+
+        if (currParentX === childX && currParentY === childY && currChildX === parentX
+            && currChildY === parentY) {
+            step++;
+            if (step === queue_animate.length) {
+                //закончить аинимацию
+            }
+            // var t = heapAnimated[childN];
+            heapAnimated[childN] = parent;
+            heapAnimated[parentN] = child;
+
+            childN = parentN;
+            child = heapAnimated[childN];
+
+            parentN = queue_animate[step];
+            parent = heapAnimated[parentN];
+
+
+
+            parentX = HeapXPositions[parentN];
+            parentY = HeapYPositions[parentN];
+            childX = HeapXPositions[childN];
+            childY = HeapYPositions[childN];
+
+            currChildX = childX;
+            currChildY = childY;
+            currParentX = parentX;
+            currParentY = parentY;
+
+            if (childX < parentX)
+                dx = -speed;
+            else
+                dx = speed;
+
+        }
+
         console.log("1");
         ctx.clearRect(0, 0, innerWidth, innerHeight);
         drawBinaryHeap(heapAnimated, childN);
-        currParentX += dx;
-        currParentY += dy;
+        if (currParentX !== childX)
+            currParentX += dx;
+        if (currParentY !== childY)
+            currParentY += dy;
+        if (currChildX !== parentX)
+            currChildX -= dx;
+        if (currChildY !== parentY)
+            currChildY -= dy;
+        
         parent.draw(currParentX, currParentY);
+        child.draw(currChildX, currChildY);
 
 
+        
     }
 
     animate();
