@@ -271,7 +271,6 @@ function drawBubbleUp() {
             parent = heapAnimated[parentN];
 
 
-
             parentX = HeapXPositions[parentN];
             parentY = HeapYPositions[parentN];
             childX = HeapXPositions[childN];
