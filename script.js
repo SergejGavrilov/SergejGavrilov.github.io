@@ -26,6 +26,8 @@ var HeapYPositions = [100, 170, 170, 240, 240, 240, 240, 310, 310, 310, 310, 310
 
 var ARRAY_SIZE = 32;
 
+var queue_animate =[];
+
 function BinaryHeap(scoreFunction) {
     this.content = [];
     this.scoreFunction = scoreFunction;
@@ -36,7 +38,9 @@ BinaryHeap.prototype = {
         // Add the new element to the end of the array.
         this.content.push(element);
         //Нарисуем непросеенную кучу
-        drawBinaryHeap();
+        drawBinaryHeap(this.content);
+
+
         // Allow it to bubble up.
         this.bubbleUp(this.content.length - 1);
     },
@@ -95,10 +99,12 @@ BinaryHeap.prototype = {
 
             // Otherwise, swap the parent with the current element and
             // continue.
-            drawBubbleUp(n);
+            //drawBubbleUp(n);
+
             this.content[parentN] = element;
             this.content[n] = parent;
             n = parentN;
+            queue_animate.push(parentN);
         }
     },
 
@@ -147,6 +153,13 @@ var heap = new BinaryHeap(function (x) {
     return x.getValue();
 });
 
+/*
+var heapAnimated = new BinaryHeap(function (x) {
+    return x.getValue();
+});*/
+
+var heapAnimated = [];
+
 
 function Node(value) {
     this.value = value;
@@ -181,10 +194,15 @@ buttonClearCanvas.onclick = function () {
 
 //INSERT
 buttonInsertNode.onclick = function () {
-
+    heapAnimated.content = [];
+    queue_animate = [];
     var element = parseInt(nodeInput.value);
-    heap.push(new Node(element));
-    drawBinaryHeap(heap);
+    var node = new Node(element);
+    for (var i = 0; i < heap.content.length; i++)
+        heapAnimated.push(heap.content[i]);
+    heapAnimated.push(node);
+    heap.push(node);
+    drawBubbleUp();
 };
 
 
@@ -198,29 +216,58 @@ buttonCreateHeap.onclick = function () {
         heap.push(new Node(arr[i]));
     }
 
-    drawBinaryHeap();
+    drawBinaryHeap(heap.content);
 
 };
 
+
+
+
 //ANIMATION
-function drawBubbleUp(n) {
-    var parentN = Math.floor((n + 1) / 2) - 1,
-        parent = heap.content[parentN];
+function drawBubbleUp() {
+    var parentN = queue_animate[0],
+        parent = heapAnimated[parentN];
+
+    var childN = heapAnimated.length - 1,
+        child = heapAnimated[childN];
     var parentX = HeapXPositions[parentN];
     var parentY = HeapYPositions[parentN];
-    var childX = HeapXPositions[n];
-    var childY = HeapYPositions[n];
+    var childX = HeapXPositions[childN];
+    var childY = HeapYPositions[childN];
 
-    var dx = 5;
-    var dy = 5;
+    var dx = 1;
+    var dy = 1;
     var currChildX = childX;
     var currChildY = childY;
     var currParentX = parentX;
     var currParentY = parentY;
 
+    function animate() {
+        requestAnimationFrame(animate);
+        console.log("1");
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        drawBinaryHeap(heapAnimated, childN);
+        currParentX += dx;
+        currParentY += dy;
+        parent.draw(currParentX, currParentY);
 
 
-    var fps = 5;
+    }
+
+    animate();
+    
+    var x = 200;
+    function ani() {
+        requestAnimationFrame(ani);
+        ctx.beginPath();
+        ctx.arc(x, 200,30 ,0 , Math.PI * 2, false);
+        ctx.strokeStyle = 'blue';
+        ctx.stroke();
+        x += 1;
+    }
+
+ //   ani();
+/*    var fps = 5;
     setInterval(function () {
         currParentX += dx;
         currParentY += dy;
@@ -240,10 +287,10 @@ function drawBubbleUp(n) {
 
 //DRAW
 //передаем аргумент - рисуем кучу без 2-х элементов. Ничего не передаем - рисуем целиком
-function drawBinaryHeap() {
+function drawBinaryHeap(heapArray) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    for (var i = 0; i < heap.content.length; i++) {
+    for (var i = 0; i < heapArray.length; i++) {
         var parentN = Math.floor(i / 2 - 0.5);
         if (i > 0) {
             ctx.beginPath();
@@ -254,11 +301,11 @@ function drawBinaryHeap() {
             ctx.closePath();
         }
         //НА случай, если нам потребуется отрисовать кучу бех элемента и без предка
-        //этого элемента
-        if (arguments.length === 1 &&
-            (arguments[0] === i || (arguments[0] === 2 * i + 1 || arguments[0] === 2 * i + 2)))
+        //этого элемента i - номер элемента
+        if (arguments.length === 2 &&
+            (arguments[1] === i || arguments[1] === 2 * i + 1 || arguments[1] === 2 * i + 2))
             continue;
-        heap.content[i].draw(HeapXPositions[i], HeapYPositions[i]);
+        heapArray[i].draw(HeapXPositions[i], HeapYPositions[i]);
     }
 }
 var x = 200;
