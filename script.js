@@ -9,7 +9,7 @@ var speedControl = document.getElementById("speedControl");
 
 const arrayInput = document.getElementById("arrayInput");
 var nodeInput = document.getElementById("nodeInput");
-
+var buttonStop = document.getElementById("stop");
 
 const defaultRadius = 20;
 const startAngle = 0;
@@ -26,7 +26,11 @@ var HeapYPositions = [100, 170, 170, 240, 240, 240, 240, 310, 310, 310, 310, 310
 
 var ARRAY_SIZE = 32;
 
+
+
 var queue_animate = [];
+
+var animationStarted = false;
 
 function BinaryHeap(scoreFunction) {
     this.content = [];
@@ -190,6 +194,11 @@ buttonClearCanvas.onclick = function () {
 };
 
 
+//STOP
+buttonStop.onclick = function () {
+    animationStarted = false;
+};
+
 function insert(node) {
     heapAnimated = [];
     queue_animate = [];
@@ -231,7 +240,7 @@ buttonCreateHeap.onclick = function () {
 
 };
 
-var requestId;
+
 //ANIMATION
 function drawBubbleUp() {
 
@@ -264,12 +273,21 @@ function drawBubbleUp() {
         currParentX = parentX,
         currParentY = parentY;
 
+    var requestId;
+
+    animationStarted = true;
+
     function animate() {
         requestID = requestAnimationFrame(animate);
 
         //Если больше нечего менять - заканчиваем анимацию
         if (queue_animate.length === 0) {
             drawBinaryHeap(heapAnimated);
+            cancelAnimationFrame(requestID);
+            return;
+        }
+
+        if (!animationStarted) {
             cancelAnimationFrame(requestID);
             return;
         }
