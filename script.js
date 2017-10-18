@@ -5,6 +5,7 @@ var ctx = canvas.getContext("2d");
 const buttonCreateHeap = document.getElementById("createHeap");
 var buttonClearCanvas = document.getElementById("clearCanvas");
 var buttonInsertNode = document.getElementById("insertNode");
+var speedControl = document.getElementById("speedControl");
 
 const arrayInput = document.getElementById("arrayInput");
 var nodeInput = document.getElementById("nodeInput");
@@ -23,10 +24,9 @@ var HeapYPositions = [100, 170, 170, 240, 240, 240, 240, 310, 310, 310, 310, 310
     380, 380, 380, 380, 380];
 
 
-
 var ARRAY_SIZE = 32;
 
-var queue_animate =[];
+var queue_animate = [];
 
 function BinaryHeap(scoreFunction) {
     this.content = [];
@@ -37,8 +37,6 @@ BinaryHeap.prototype = {
     push: function (element) {
         // Add the new element to the end of the array.
         this.content.push(element);
-        //Нарисуем непросеенную кучу
-        drawBinaryHeap(this.content);
 
 
         // Allow it to bubble up.
@@ -97,13 +95,10 @@ BinaryHeap.prototype = {
             if (score >= this.scoreFunction(parent))
                 break;
 
-            // Otherwise, swap the parent with the current element and
-            // continue.
-            //drawBubbleUp(n);
-
             this.content[parentN] = element;
             this.content[n] = parent;
             n = parentN;
+            //заполняем массив предков с которыми менялся элемент
             queue_animate.push(parentN);
         }
     },
@@ -153,11 +148,6 @@ var heap = new BinaryHeap(function (x) {
     return x.getValue();
 });
 
-/*
-var heapAnimated = new BinaryHeap(function (x) {
-    return x.getValue();
-});*/
-
 var heapAnimated = [];
 
 
@@ -166,9 +156,10 @@ function Node(value) {
 }
 
 Node.prototype.draw = function (x, y) {
+    //Круг
     ctx.beginPath();
     ctx.arc(x, y, defaultRadius, startAngle, endEngle, false);
-
+    //Текст
     ctx.stroke();
     ctx.strokeText(this.value.toString(), x, y);
 };
@@ -186,30 +177,48 @@ Node.prototype.getValue = function () {
 };
 
 
-//CLEAR
-buttonClearCanvas.onclick = function () {
+function clear() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     heap.content = [];
     queue_animate = [];
-    heapAnimated = []
+    heapAnimated = [];
+}
+
+//CLEAR
+buttonClearCanvas.onclick = function () {
+    clear();
 };
 
-//INSERT
-buttonInsertNode.onclick = function () {
-    heapAnimated.content = [];
+
+function insert(node) {
+    heapAnimated = [];
     queue_animate = [];
-    var element = parseInt(nodeInput.value);
-    var node = new Node(element);
+    //Создаем новый элемент
+
+
+    //Копируем состояние двоичной кучи и добавим новый элемент в конец
     for (var i = 0; i < heap.content.length; i++)
         heapAnimated.push(heap.content[i]);
     heapAnimated.push(node);
+
+    //запустим алгоритм
     heap.push(node);
+
+    //запустим анимацию
     drawBubbleUp();
+}
+
+//INSERT
+buttonInsertNode.onclick = function () {
+    var element = parseInt(nodeInput.value);
+    var node = new Node(element);
+    insert(node);
 };
 
 
 //CREATE
 buttonCreateHeap.onclick = function () {
+    clear();
     var arr = arrayInput.value.split(" ").map(function (x) {
         return parseInt(x)
     });
@@ -222,52 +231,63 @@ buttonCreateHeap.onclick = function () {
 
 };
 
-
-var speed = 1;
-
+var requestId;
 //ANIMATION
 function drawBubbleUp() {
-    var step = 0,
-        parentN = queue_animate[step],
-        parent = heapAnimated[parentN];
-    var speed = 0.5;
-    var childN = heapAnimated.length - 1 - step,
-        child = heapAnimated[childN];
-    var parentX = HeapXPositions[parentN];
-    var parentY = HeapYPositions[parentN];
-    var childX = HeapXPositions[childN];
-    var childY = HeapYPositions[childN];
 
-    var dx = speed;
+    var parentN = queue_animate[0],
+        parent = heapAnimated[parentN];
+
+
+    var childN = heapAnimated.length - 1,
+        child = heapAnimated[childN];
+
+    //Координаты
+    var parentX = HeapXPositions[parentN],
+        parentY = HeapYPositions[parentN],
+        childX = HeapXPositions[childN],
+        childY = HeapYPositions[childN];
+
+
+    var speed = 0.5,
+        dx = speed,
+        dy = speed;
+
     if (childX < parentX)
         dx = -speed;
     else
         dx = speed;
 
-    var dy = speed;
-    
-    var currChildX = childX;
-    var currChildY = childY;
-    var currParentX = parentX;
-    var currParentY = parentY;
+    //Координаты в настоящий момент времени
+    var currChildX = childX,
+        currChildY = childY,
+        currParentX = parentX,
+        currParentY = parentY;
 
     function animate() {
-        requestAnimationFrame(animate);
+        requestID = requestAnimationFrame(animate);
 
+        //Если больше нечего менять - заканчиваем анимацию
+        if (queue_animate.length === 0) {
+            drawBinaryHeap(heapAnimated);
+            cancelAnimationFrame(requestID);
+            return;
+        }
+
+        //Нужно обновить данные
         if (currParentX === childX && currParentY === childY && currChildX === parentX
             && currChildY === parentY) {
-            step++;
-            if (step === queue_animate.length) {
-                //закончить аинимацию
-            }
-            // var t = heapAnimated[childN];
+
+            //достаем следующий элемент
+            queue_animate.shift();
+            //меняем элементы в куче
             heapAnimated[childN] = parent;
             heapAnimated[parentN] = child;
 
             childN = parentN;
             child = heapAnimated[childN];
 
-            parentN = queue_animate[step];
+            parentN = queue_animate[0];
             parent = heapAnimated[parentN];
 
 
@@ -288,9 +308,15 @@ function drawBubbleUp() {
 
         }
 
+        //Отрисовка
         console.log("1");
-        ctx.clearRect(0, 0, innerWidth, innerHeight);
-        drawBinaryHeap(heapAnimated, childN);
+        //Заново рисуем кучу без обозначенных элементов
+        drawBinaryHeap(heapAnimated, childN, parentN);
+        parent.draw(currParentX, currParentY);
+        child.draw(currChildX, currChildY);
+
+
+        //Обновим координаты
         if (currParentX !== childX)
             currParentX += dx;
         if (currParentY !== childY)
@@ -299,43 +325,13 @@ function drawBubbleUp() {
             currChildX -= dx;
         if (currChildY !== parentY)
             currChildY -= dy;
-        
-        parent.draw(currParentX, currParentY);
-        child.draw(currChildX, currChildY);
 
 
-        
     }
 
+    //Запускаем анимацию после инициализации
     animate();
-    
-    var x = 200;
-    function ani() {
-        requestAnimationFrame(ani);
-        ctx.beginPath();
-        ctx.arc(x, 200,30 ,0 , Math.PI * 2, false);
-        ctx.strokeStyle = 'blue';
-        ctx.stroke();
-        x += 1;
-    }
 
- //   ani();
-/*    var fps = 5;
-    setInterval(function () {
-        currParentX += dx;
-        currParentY += dy;
-        parent.draw(currParentX, currParentY);
-        drawBinaryHeap(n);
-    }, 1000/fps);
-    //requestAnimationFrame(drawBubbleUp);
-
- /*   if (currParentX != childX)
-        currParentX += dx;
-    if (currParentY != childY)
-        currParentY += dy;
-    parent.draw(currParentX, currParentY);
-    drawBinaryHeap(n);
-*/
 }
 
 //DRAW
@@ -345,27 +341,38 @@ function drawBinaryHeap(heapArray) {
 
     for (var i = 0; i < heapArray.length; i++) {
         var parentN = Math.floor(i / 2 - 0.5);
+
+        //рисуем ребра
         if (i > 0) {
             ctx.beginPath();
             ctx.moveTo(HeapXPositions[i], HeapYPositions[i]);
             ctx.lineTo(HeapXPositions[parentN],
-                        HeapYPositions[parentN]);
+                HeapYPositions[parentN]);
             ctx.stroke();
             ctx.closePath();
         }
-        //НА случай, если нам потребуется отрисовать кучу бех элемента и без предка
-        //этого элемента i - номер элемента
-        if (arguments.length === 2 &&
-            (arguments[1] === i || arguments[1] === 2 * i + 1 || arguments[1] === 2 * i + 2))
-            continue;
+
+        //Передаем номера элементов, которые не нужно отрисовывать
+        if (arguments.length > 1) {
+            var skip = false;
+            for (var j = 0; j < arguments.length; j++)
+                if (arguments[j] === i)
+                    skip = true;
+            if (skip)
+                continue
+        }
+
+        //рисуем вершину
         heapArray[i].draw(HeapXPositions[i], HeapYPositions[i]);
     }
 }
+
 var x = 200;
+
 function animate(n) {
     requestAnimationFrame(animate);
     ctx.beginPath();
-    ctx.arc(x, 200,30 ,0 , Math.PI * 2, false);
+    ctx.arc(x, 200, 30, 0, Math.PI * 2, false);
     ctx.strokeStyle = 'blue';
     ctx.stroke();
     x += 1;
