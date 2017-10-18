@@ -10,7 +10,9 @@ var speedControl = document.getElementById("speedControl");
 const arrayInput = document.getElementById("arrayInput");
 var nodeInput = document.getElementById("nodeInput");
 var buttonStop = document.getElementById("stop");
+var buttonStart = document.getElementById("start");
 
+var isResumed = false;
 const defaultRadius = 20;
 const startAngle = 0;
 const endEngle = Math.PI * 2;
@@ -26,7 +28,7 @@ var HeapYPositions = [100, 170, 170, 240, 240, 240, 240, 310, 310, 310, 310, 310
 
 var ARRAY_SIZE = 32;
 
-
+var speed = 0.5;
 
 var queue_animate = [];
 
@@ -188,9 +190,17 @@ function clear() {
     heapAnimated = [];
 }
 
+
+
 //CLEAR
 buttonClearCanvas.onclick = function () {
     clear();
+};
+
+//START
+buttonStart.onclick = function () {
+    isResumed = true;
+    drawBubbleUp();
 };
 
 
@@ -241,6 +251,54 @@ buttonCreateHeap.onclick = function () {
 };
 
 
+/*
+var state = {
+    parentN: undefined,
+
+    childN: undefined,
+
+    currChildX: undefined,
+    currChildY: undefined,
+    currParentX: undefined,
+    currParentY: undefined
+};
+
+state.prototype.init = function () {
+    this.parentN = queue_animate[0];
+
+    this.childN = heapAnimated.length - 1;
+
+
+    this.currChildX = this.childX;
+    this.currChildY = this.childY;
+    this.currParentX = this.parentX;
+    this.currParentY = this.parentY;
+};
+
+state.prototype.save();
+*/
+
+
+function setSpeed(value) {
+    speed = value;
+}
+
+function State() {
+
+}
+
+
+State.prototype.save = function (parentN, childN, currChildX, currChildY, currParentX, currParentY) {
+    this.parentN = parentN;
+    this.childN = childN;
+    this.currChildX = currChildX;
+    this.currChildY = currChildY;
+    this.currParentX = currParentX;
+    this.currParentY = currParentY;
+};
+
+var state = new State();
+
 //ANIMATION
 function drawBubbleUp() {
 
@@ -258,8 +316,8 @@ function drawBubbleUp() {
         childY = HeapYPositions[childN];
 
 
-    var speed = 0.5,
-        dx = speed,
+   // var speed = 0.5,
+      var  dx = speed,
         dy = speed;
 
     if (childX < parentX)
@@ -273,8 +331,24 @@ function drawBubbleUp() {
         currParentX = parentX,
         currParentY = parentY;
 
-    var requestId;
+    if (isResumed) {
+        parentN = state.parentN;
+        childN = state.childN;
+        currChildX = state.currChildX;
+        currChildY = state.currChildY;
+        currParentX = state.currParentX;
+        currParentY = state.currParentY;
 
+        parent = heapAnimated[parentN];
+        child = heapAnimated[childN];
+        parentX = HeapXPositions[parentN];
+        parentY = HeapYPositions[parentN];
+        childX = HeapXPositions[childN];
+        childY = HeapYPositions[childN];
+        isResumed = false;
+    }
+
+    var requestId;
     animationStarted = true;
 
     function animate() {
@@ -287,8 +361,11 @@ function drawBubbleUp() {
             return;
         }
 
+        //Остановка при нажатии кнопки стоп
         if (!animationStarted) {
             cancelAnimationFrame(requestID);
+            state.save(parentN, childN, currChildX, currChildY, currParentX, currParentY);
+
             return;
         }
 
@@ -353,7 +430,7 @@ function drawBubbleUp() {
 }
 
 //DRAW
-//передаем аргумент - рисуем кучу без 2-х элементов. Ничего не передаем - рисуем целиком
+
 function drawBinaryHeap(heapArray) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
