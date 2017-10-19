@@ -3,32 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>MyProject</title>
-    
+
     <style type="text/css">
         canvas {
             border: 1px solid black;
         }
-        #arrayInput {
+
+        .controls {
+            margin-left: 30%;
+            margin-top: -10%;
         }
     </style>
 </head>
-<br>
-    <canvas id="canvas" width="1000" height="600"></canvas> </br>
-    <input type="text" id="arrayInput" placeholder="Введите массив чисел"
-           value="2 3 4 5 6 7 8 9"> </br>
-    <input type="button" id="createHeap" value="построить двоичную кучу">
-    <input type="button" id="clearCanvas" value="очистить">  </br>
 
-    <input type="text" id="nodeInput" placeholder="Введите элумент" value="1"> </br>
-    <input type="button" id="insertNode" value="добавить элемент"> </br>
-    <input type="range" id="speedControl" min="1" max="5" step="1" onchange="setSpeed(this.value)">
+
+<h1 align="center">
+    <span style="color: #00008B; "> Вставка элемента в двоичную кучу </span>
+</h1>
+<canvas id="canvas" width="1000" height="600"></canvas> </br>
+<p>Веедите числа через пробел</p>
+<input type="text" id="arrayInput" placeholder="Введите массив чисел"
+       value="2 3 4 5 6 7 8 9">
+<input type="button" id="createHeap" value="построить двоичную кучу"> </br>
+<p><input type="button" id="clearCanvas" value="очистить"></p> </br>
+
+<p>Введите число, которое хотели бы добавить в кучу</p>
+<input type="text" id="nodeInput" placeholder="Введите элумент" value="1">
+<input type="button" id="insertNode" value="добавить элемент"> </br>
+<div class="controls">
+    <input type="range" id="speedControl" min="1" max="5" step="0.5" onchange="setSpeed(this.value)">
     <input type="button" id="stop" value="стоп">
     <input type="button" id="start" value="старт"> </br>
+    <input type="button" id="skip" value="пропустить шаг">
     <script src="script.js"></script>
+</div>
 
-
-    <p id="demo"></p>
-    <p id="two"></p>
-    <p id="tri"></p>
+<p id="demo"></p>
+<p id="two"></p>
+<p id="tri"></p>
 </body>
 </html>
