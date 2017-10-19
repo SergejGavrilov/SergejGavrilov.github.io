@@ -260,10 +260,10 @@ buttonInsertNode.onclick = function () {
 //CREATE
 buttonCreateHeap.onclick = function () {
     clear();
-    var arr = arrayInput.value.split(" ").map(function (x) {
+
+   var arr = arrayInput.value.match(/[0-9]+/g).map(function (x) {
         return parseInt(x)
     });
-
     for (var i = 0; i < arr.length; i++) {
         heap.push(new Node(arr[i]));
     }
